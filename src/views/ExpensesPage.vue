@@ -1,3 +1,8 @@
+<!--
+  ExpensesPage.vue - the main page.
+
+  It shows the list of expenses and lets the user add, edit and delete them.
+-->
 <template>
   <ion-page>
     <ion-header class="ion-no-border">
@@ -6,34 +11,29 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
-      <!-- Shown only when .env has not been filled in yet. -->
+    <ion-content>
+      <!-- Only shown when the .env file has not been filled in yet. -->
       <div v-if="errorMessage" class="notice">
         <p class="eyebrow">Setup needed</p>
         <p>{{ errorMessage }}</p>
       </div>
 
-      <!-- Running total -->
+      <!-- The totals at the top of the page. -->
       <header class="masthead">
         <p class="eyebrow">Total spent</p>
         <p class="figure">
           <span class="figure-symbol">{{ PESO }}</span>{{ formatAmount(total) }}
         </p>
         <p class="meta">
-          {{ formatMonthLabel() }} &nbsp;·&nbsp; {{ PESO }}{{ formatAmount(monthTotal) }}
-          &nbsp;·&nbsp; {{ expenses.length }} {{ expenses.length === 1 ? 'entry' : 'entries' }}
+          {{ monthName }} &nbsp;·&nbsp; {{ PESO }}{{ formatAmount(monthTotal) }} &nbsp;·&nbsp;
+          {{ expenses.length }} entries
         </p>
       </header>
 
       <div class="controls">
-        <ion-searchbar
-          v-model="searchText"
-          class="ledger-search"
-          placeholder="Search"
-          :debounce="200"
-        />
+        <ion-searchbar v-model="searchText" class="ledger-search" placeholder="Search" />
 
-        <!-- Category filter: plain text, underlined when active -->
+        <!-- The category buttons. Tapping one changes activeCategory. -->
         <nav class="filters">
           <button
             type="button"
@@ -44,28 +44,28 @@
             All
           </button>
           <button
-            v-for="c in CATEGORIES"
-            :key="c.id"
+            v-for="item in categories"
+            :key="item.id"
             type="button"
             class="filter"
-            :class="{ 'is-active': activeCategory === c.id }"
-            @click="activeCategory = c.id"
+            :class="{ 'is-active': activeCategory === item.id }"
+            @click="activeCategory = item.id"
           >
-            {{ c.label }}
+            {{ item.label }}
           </button>
         </nav>
       </div>
 
-      <!-- Loading placeholder -->
+      <!-- 1. While we wait for Firebase -->
       <div v-if="loading" class="skeletons">
         <div v-for="n in 4" :key="n" class="skeleton-row">
-          <ion-skeleton-text :animated="true" style="width: 45%; height: 13px" />
-          <ion-skeleton-text :animated="true" style="width: 22%; height: 13px" />
+          <ion-skeleton-text animated="true" style="width: 45%; height: 13px" />
+          <ion-skeleton-text animated="true" style="width: 22%; height: 13px" />
         </div>
       </div>
 
-      <!-- Empty state -->
-      <div v-else-if="grouped.length === 0" class="empty-state">
+      <!-- 2. When there is nothing to show -->
+      <div v-else-if="dayGroups.length === 0" class="empty-state">
         <div class="rule" />
         <h2>{{ expenses.length === 0 ? 'Nothing recorded yet' : 'No matches' }}</h2>
         <p>
@@ -77,64 +77,56 @@
         </p>
       </div>
 
-      <!-- READ: the live list, grouped by day -->
-      <template v-else>
-        <section v-for="group in grouped" :key="group.date" class="day">
-          <div class="day-head">
-            <span class="day-label">{{ group.label }}</span>
-            <span class="day-total tabular">{{ PESO }}{{ formatAmount(group.total) }}</span>
-          </div>
+      <!-- 3. The list itself, one block per day -->
+      <div v-for="group in dayGroups" v-else :key="group.date">
+        <div class="day-head">
+          <span class="day-label">{{ group.label }}</span>
+          <span class="day-total tabular">{{ PESO }}{{ formatAmount(group.total) }}</span>
+        </div>
 
-          <ion-list :lines="'none'">
-            <ion-item-sliding v-for="expense in group.items" :key="expense.id">
-              <ion-item button :detail="false" @click="openEdit(expense)">
-                <div class="row">
-                  <span
-                    class="dot"
-                    :style="{ backgroundColor: getCategory(expense.category).color }"
-                  />
-                  <div class="row-text">
-                    <p class="name">{{ expense.name }}</p>
-                    <p class="cat">{{ getCategory(expense.category).label }}</p>
-                    <p v-if="expense.notes" class="note">{{ expense.notes }}</p>
-                  </div>
-                  <p class="amount tabular">{{ formatAmount(expense.amount) }}</p>
+        <ion-list lines="none">
+          <ion-item-sliding v-for="expense in group.items" :key="expense.id">
+            <!-- Tapping the row opens the form so it can be edited. -->
+            <ion-item button detail="false" @click="openEditForm(expense)">
+              <div class="row">
+                <span class="dot" :style="{ backgroundColor: findCategory(expense.category).color }" />
+                <div class="row-text">
+                  <p class="name">{{ expense.name }}</p>
+                  <p class="cat">{{ findCategory(expense.category).label }}</p>
+                  <p v-if="expense.notes" class="note">{{ expense.notes }}</p>
                 </div>
-              </ion-item>
+                <p class="amount tabular">{{ formatAmount(expense.amount) }}</p>
+              </div>
+            </ion-item>
 
-              <!-- Swipe left for Edit / Delete -->
-              <ion-item-options side="end">
-                <ion-item-option class="opt-edit" @click="openEdit(expense)">Edit</ion-item-option>
-                <ion-item-option class="opt-delete" @click="confirmDelete(expense)">
-                  Delete
-                </ion-item-option>
-              </ion-item-options>
-            </ion-item-sliding>
-          </ion-list>
-        </section>
+            <!-- Swipe the row to the left to see these two buttons. -->
+            <ion-item-options side="end">
+              <ion-item-option class="opt-edit" @click="openEditForm(expense)">Edit</ion-item-option>
+              <ion-item-option class="opt-delete" @click="askBeforeDeleting(expense)">
+                Delete
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </ion-list>
+      </div>
 
-        <div class="tail-rule" />
-      </template>
+      <div class="tail-rule" />
 
-      <!-- CREATE -->
+      <!-- The round + button that opens an empty form. -->
       <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="fab-wrap">
-        <ion-fab-button class="ledger-fab" @click="openCreate">
+        <ion-fab-button class="ledger-fab" @click="openAddForm">
           <ion-icon :icon="addOutline" />
         </ion-fab-button>
       </ion-fab>
     </ion-content>
 
-    <!-- The one modal used for both Add and Edit -->
-    <expense-form-modal
-      :is-open="isModalOpen"
-      :expense="selectedExpense"
-      @close="isModalOpen = false"
-    />
+    <!-- One form is used for both adding and editing. -->
+    <expense-form :is-open="isFormOpen" :expense="expenseBeingEdited" @close="isFormOpen = false" />
   </ion-page>
 </template>
 
-<script setup lang="ts">
-import { computed, ref } from 'vue';
+<script setup>
+import { ref, computed } from 'vue';
 import {
   IonContent,
   IonFab,
@@ -155,82 +147,108 @@ import {
   toastController,
 } from '@ionic/vue';
 import { addOutline } from 'ionicons/icons';
-import ExpenseFormModal from '@/components/ExpenseFormModal.vue';
-import {
-  PESO,
-  formatAmount,
-  formatDayLabel,
-  formatMonthLabel,
-  useExpenses,
-} from '@/composables/useExpenses';
-import { CATEGORIES, getCategory, type Expense } from '@/types/expense';
 
-const { expenses, loading, errorMessage, total, monthTotal, deleteExpense } = useExpenses();
+import ExpenseForm from '../components/ExpenseForm.vue';
+import { categories, findCategory } from '../categories.js';
+import { expenses, loading, errorMessage, total, monthTotal, deleteExpense } from '../expenses.js';
+import { PESO, formatAmount, dayLabel } from '../helpers.js';
 
+// What the user typed in the search box.
 const searchText = ref('');
-const activeCategory = ref<string>('all');
-const isModalOpen = ref(false);
-const selectedExpense = ref<Expense | null>(null);
 
-/** The list after the search box and the category filter are applied. */
-const filteredExpenses = computed(() => {
-  const term = searchText.value.trim().toLowerCase();
+// Which category button is selected. 'all' means no filter.
+const activeCategory = ref('all');
 
-  return expenses.value.filter((expense) => {
-    const matchesCategory =
-      activeCategory.value === 'all' || expense.category === activeCategory.value;
-    const matchesSearch =
-      term === '' ||
-      expense.name.toLowerCase().includes(term) ||
-      expense.notes.toLowerCase().includes(term);
-    return matchesCategory && matchesSearch;
-  });
+// Is the form open, and which expense is it editing?
+const isFormOpen = ref(false);
+const expenseBeingEdited = ref(null); // null means "adding a new one"
+
+// "September 2026", shown under the total.
+const monthName = computed(() => {
+  return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 });
 
-/**
- * Group the filtered list by date so the page reads like a statement:
- * a day heading with that day's subtotal, then the entries underneath.
- * The list already arrives sorted newest-first, so insertion order is correct.
- */
-const grouped = computed(() => {
-  const days = new Map<string, Expense[]>();
+// STEP 1: keep only the expenses that match the search box AND the category.
+const visibleExpenses = computed(() => {
+  const search = searchText.value.trim().toLowerCase();
+  const result = [];
 
-  for (const expense of filteredExpenses.value) {
-    const bucket = days.get(expense.date);
-    if (bucket) bucket.push(expense);
-    else days.set(expense.date, [expense]);
+  for (const expense of expenses.value) {
+    // Does it match the category buttons?
+    let categoryMatches = false;
+    if (activeCategory.value === 'all' || activeCategory.value === expense.category) {
+      categoryMatches = true;
+    }
+
+    // Does it match what was typed in the search box?
+    let searchMatches = false;
+    if (search === '') {
+      searchMatches = true;
+    } else if (expense.name.toLowerCase().includes(search)) {
+      searchMatches = true;
+    } else if (expense.notes.toLowerCase().includes(search)) {
+      searchMatches = true;
+    }
+
+    if (categoryMatches && searchMatches) {
+      result.push(expense);
+    }
   }
 
-  return [...days.entries()].map(([date, items]) => ({
-    date,
-    label: formatDayLabel(date),
-    total: items.reduce((sum, item) => sum + item.amount, 0),
-    items,
-  }));
+  return result;
 });
 
-function openCreate(): void {
-  selectedExpense.value = null;
-  isModalOpen.value = true;
+// STEP 2: put the expenses into groups, one group per day, so the page can
+// show a heading and a subtotal above each day.
+const dayGroups = computed(() => {
+  const groups = [];
+
+  for (const expense of visibleExpenses.value) {
+    // Do we already have a group for this date?
+    let group = groups.find((item) => item.date === expense.date);
+
+    // If not, start a new one.
+    if (!group) {
+      group = {
+        date: expense.date,
+        label: dayLabel(expense.date),
+        total: 0,
+        items: [],
+      };
+      groups.push(group);
+    }
+
+    group.items.push(expense);
+    group.total = group.total + expense.amount;
+  }
+
+  return groups;
+});
+
+// Open the form with nothing in it.
+function openAddForm() {
+  expenseBeingEdited.value = null;
+  isFormOpen.value = true;
 }
 
-function openEdit(expense: Expense): void {
-  selectedExpense.value = expense;
-  isModalOpen.value = true;
+// Open the form already filled in with this expense.
+function openEditForm(expense) {
+  expenseBeingEdited.value = expense;
+  isFormOpen.value = true;
 }
 
-/** DELETE - always ask first, then remove the document from Firestore. */
-async function confirmDelete(expense: Expense): Promise<void> {
+// Ask "are you sure?" before deleting, because deleting cannot be undone.
+async function askBeforeDeleting(expense) {
   const alert = await alertController.create({
     header: 'Delete this entry?',
-    message: `“${expense.name}” will be permanently removed.`,
+    message: '"' + expense.name + '" will be permanently removed.',
     buttons: [
       { text: 'Cancel', role: 'cancel' },
       {
         text: 'Delete',
         role: 'destructive',
         handler: () => {
-          void removeExpense(expense);
+          removeExpense(expense);
         },
       },
     ],
@@ -238,18 +256,19 @@ async function confirmDelete(expense: Expense): Promise<void> {
   await alert.present();
 }
 
-async function removeExpense(expense: Expense): Promise<void> {
+// Actually delete it. This only runs if the user tapped Delete in the alert.
+async function removeExpense(expense) {
   try {
     await deleteExpense(expense.id);
-    await notify('Entry deleted');
+    showMessage('Entry deleted');
   } catch (error) {
-    console.error('[ExpensesPage] delete failed', error);
-    await notify('Could not delete. Please try again.');
+    console.error(error);
+    showMessage('Could not delete. Please try again.');
   }
 }
 
-async function notify(message: string): Promise<void> {
-  const toast = await toastController.create({ message, duration: 2000, position: 'bottom' });
+async function showMessage(text) {
+  const toast = await toastController.create({ message: text, duration: 2000 });
   await toast.present();
 }
 </script>
@@ -280,7 +299,6 @@ async function notify(message: string): Promise<void> {
   padding-top: 18px;
 }
 
-/* --- Category filter ---------------------------------------------------- */
 .filters {
   display: flex;
   gap: 20px;
@@ -306,7 +324,6 @@ async function notify(message: string): Promise<void> {
   color: var(--ink-faint);
   border-bottom: 1px solid transparent;
   cursor: pointer;
-  transition: color 0.15s ease;
 }
 
 .filter.is-active {
@@ -314,7 +331,6 @@ async function notify(message: string): Promise<void> {
   border-bottom-color: var(--ink);
 }
 
-/* --- Day groups --------------------------------------------------------- */
 .day-head {
   display: flex;
   align-items: baseline;
@@ -336,7 +352,6 @@ async function notify(message: string): Promise<void> {
   color: var(--ink-faint);
 }
 
-/* --- Rows --------------------------------------------------------------- */
 .row {
   display: flex;
   align-items: flex-start;
@@ -400,7 +415,6 @@ async function notify(message: string): Promise<void> {
   margin: 0 0 120px;
 }
 
-/* --- Loading ------------------------------------------------------------ */
 .skeletons {
   padding-top: 30px;
 }

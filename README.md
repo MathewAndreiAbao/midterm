@@ -126,34 +126,37 @@ correctly, which is what `orderBy('date', 'desc')` relies on.
 
 ```
 src/
-├─ main.ts                       app start-up: Vue + Ionic + router
-├─ App.vue                       opens the Firestore listener once, for the whole app
-├─ firebase.ts                   reads .env and initialises Firebase
-├─ router/index.ts               the three tab routes
-├─ types/expense.ts              the Expense type + the list of categories
-├─ composables/
-│  └─ useExpenses.ts             ★ ALL the Firebase CRUD code lives here
+├─ main.js                       starts the app (Vue + Ionic + router)
+├─ App.vue                       calls startListening() once, for the whole app
+├─ firebase.js                   reads .env and connects to Firebase
+├─ categories.js                 the 8 categories and findCategory()
+├─ expenses.js                   ★ the shared list + ALL FOUR CRUD functions
+├─ helpers.js                    formatting money and dates
+├─ router/index.js               the three tab routes
 ├─ components/
-│  └─ ExpenseFormModal.vue       the Add / Edit form + validation
+│  └─ ExpenseForm.vue            the add / edit form and its validation
 └─ views/
    ├─ TabsPage.vue               the bottom tab bar
    ├─ ExpensesPage.vue           the list, search, filter, delete confirmation
-   ├─ SummaryPage.vue            per-category breakdown
-   └─ AboutPage.vue              team + technology
+   ├─ SummaryPage.vue            totals per category
+   └─ AboutPage.vue              team and technology
 ```
 
-The important idea: **only `useExpenses.ts` talks to Firebase.** The pages just call its
-functions and display the results, so the UI code stays clean and there is one single
-place to look when something about the database goes wrong.
+The important idea: **only `expenses.js` talks to Firebase.** The pages import from it
+and display the results, so there is exactly one place to look when something about the
+database goes wrong.
+
+The whole project is plain JavaScript - no TypeScript, no build step beyond Vite, and no
+clever one-liners. Every function is short enough to read out loud.
 
 ### The CRUD functions
 
-All four are in `src/composables/useExpenses.ts`:
+All four are in `src/expenses.js`:
 
 | Operation | Function | Firestore call | Where it is triggered |
 | --- | --- | --- | --- |
 | **C**reate | `addExpense()` | `addDoc()` | `+` button → form → **Save** |
-| **R**ead | `subscribe()` | `onSnapshot()` | Runs once when the app starts (`App.vue`) |
+| **R**ead | `startListening()` | `onSnapshot()` | Runs once when the app starts (`App.vue`) |
 | **U**pdate | `updateExpense()` | `updateDoc()` | Tap a row (or swipe → Edit) → **Save** |
 | **D**elete | `deleteExpense()` | `deleteDoc()` | Swipe left → trash icon → confirm |
 
@@ -165,7 +168,7 @@ derived from the same list.
 
 ### Validation
 
-Before anything is written to Firebase, `ExpenseFormModal.vue` checks that:
+Before anything is written to Firebase, `ExpenseForm.vue` checks that:
 
 - the **name** is not empty,
 - the **amount** is a number greater than zero,
@@ -197,7 +200,7 @@ firebase deploy --only firestore:rules
 | Partner | Role | What they did |
 | --- | --- | --- |
 | **Partner 1** | Front-end / UI Developer | Page layouts and Ionic components, the tab navigation, the expense form modal, the search bar and category filter, the Summary page and the app styling. |
-| **Partner 2** | Firebase / Data Developer | Created the Firebase project and Firestore database, wrote `useExpenses.ts` (add / read / update / delete), the security rules, the form validation and the error handling. |
+| **Partner 2** | Firebase / Data Developer | Created the Firebase project and Firestore database, wrote `expenses.js` (add / read / update / delete), the security rules, the form validation and the error handling. |
 
 Both partners reviewed the whole codebase together and can explain any file.
 
@@ -231,11 +234,15 @@ so the web app looks and behaves like a native phone app. Firebase Cloud Firesto
 online NoSQL database that stores the expense documents - we did not write any backend
 server ourselves.
 
-**What is a composable?**
-A Vue composable is just a function that groups related reactive state and logic so several
-components can share it. `useExpenses()` holds the expense list and the four CRUD functions.
-Because the refs are declared at module level, every page shares the *same* list and the
-*same* single Firestore listener.
+**How do all three tabs show the same data?**
+`expenses.js` declares `export const expenses = ref([])` outside of any function. Because it
+sits at the top level of the file, every page that imports it gets the *same* array and the
+*same* single Firestore listener. Update it once and all three tabs redraw.
+
+**What does `computed` do?**
+It is a value Vue works out from other values, and re-calculates by itself when they change.
+`total` is a `computed` that loops through `expenses` and adds up the amounts - so we never
+have to remember to update the total after adding or deleting.
 
 **Why is `amount` a number and `date` a string?**
 `amount` must be a number so we can add the totals; if it were a string, `150 + 50` would
@@ -253,9 +260,15 @@ filter the query with `where('uid', '==', currentUser.uid)`, and tighten `firest
 to the commented-out line at the top of that file.
 
 **How is deleting made safe?**
-`confirmDelete()` in `ExpensesPage.vue` opens an Ionic confirmation alert first. `deleteDoc()`
-only runs if the user taps **Delete**, and the call is wrapped in try/catch so a failure
-shows a toast instead of breaking the app.
+`askBeforeDeleting()` in `ExpensesPage.vue` opens an Ionic confirmation alert first.
+`deleteDoc()` only runs if the user taps **Delete**, and the call is wrapped in try/catch so
+a failure shows a toast instead of breaking the app.
+
+**How does the list get grouped by day?**
+`dayGroups` in `ExpensesPage.vue` walks through the visible expenses one at a time. For each
+one it looks for a group with the same date; if there isn't one it starts a new group, then
+pushes the expense in and adds its amount to that group's total. That is the whole algorithm
+- one loop and a `find`.
 
 ---
 
@@ -265,9 +278,8 @@ shows a toast instead of breaking the app.
 | --- | --- |
 | `npm install` | Install dependencies |
 | `npm run dev` | Start the development server on port 5173 |
-| `npm run build` | Type-check and build for production into `dist/` |
+| `npm run build` | Build for production into `dist/` |
 | `npm run preview` | Serve the production build locally |
-| `npm run typecheck` | Run the TypeScript checker only |
 | `npm run emulator` | Start the local Firestore emulator |
 
 ---
@@ -279,4 +291,4 @@ shows a toast instead of breaking the app.
 | Colours, fonts, spacing, all design tokens | `src/theme/variables.css` |
 | The `@font-face` declarations | `src/theme/fonts.css` |
 | The font files themselves | `public/fonts/` |
-| Category names, icons and colours | `src/types/expense.ts` |
+| Category names and colours | `src/categories.js` |

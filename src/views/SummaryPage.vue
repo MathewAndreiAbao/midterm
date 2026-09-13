@@ -1,3 +1,9 @@
+<!--
+  SummaryPage.vue
+
+  Shows how much was spent in each category, and the biggest expenses.
+  This page only reads the same list - it never writes to Firebase.
+-->
 <template>
   <ion-page>
     <ion-header class="ion-no-border">
@@ -6,15 +12,15 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
+    <ion-content>
       <header class="masthead">
         <p class="eyebrow">Total spent</p>
         <p class="figure">
           <span class="figure-symbol">{{ PESO }}</span>{{ formatAmount(total) }}
         </p>
         <p class="meta">
-          {{ expenses.length }} {{ expenses.length === 1 ? 'entry' : 'entries' }}
-          &nbsp;·&nbsp; average {{ PESO }}{{ formatAmount(average) }}
+          {{ expenses.length }} entries &nbsp;·&nbsp; average {{ PESO
+          }}{{ formatAmount(average) }}
         </p>
       </header>
 
@@ -27,27 +33,25 @@
       <template v-else>
         <h2 class="section-title">By category</h2>
 
-        <div v-for="row in breakdown" :key="row.category.id" class="cat-row">
+        <div v-for="row in categoryTotals" :key="row.id" class="cat-row">
           <div class="cat-head">
-            <span class="cat-name">{{ row.category.label }}</span>
+            <span class="cat-name">{{ row.label }}</span>
             <span class="cat-amount tabular">{{ PESO }}{{ formatAmount(row.amount) }}</span>
           </div>
           <div class="bar-track">
-            <div
-              class="bar-fill"
-              :style="{ width: row.percent + '%', backgroundColor: row.category.color }"
-            />
+            <div class="bar-fill" :style="{ width: row.percent + '%', backgroundColor: row.color }" />
           </div>
           <span class="cat-percent tabular">{{ row.percent.toFixed(1) }}%</span>
         </div>
 
         <h2 class="section-title">Largest entries</h2>
 
-        <div v-for="expense in topExpenses" :key="expense.id" class="top-row">
+        <div v-for="expense in biggestExpenses" :key="expense.id" class="top-row">
           <div class="top-text">
             <p class="name">{{ expense.name }}</p>
             <p class="cat">
-              {{ getCategory(expense.category).label }} &nbsp;·&nbsp; {{ formatDate(expense.date) }}
+              {{ findCategory(expense.category).label }} &nbsp;·&nbsp;
+              {{ formatDate(expense.date) }}
             </p>
           </div>
           <p class="amount tabular">{{ formatAmount(expense.amount) }}</p>
@@ -59,36 +63,68 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-import { PESO, formatAmount, formatDate, useExpenses } from '@/composables/useExpenses';
-import { CATEGORIES, getCategory } from '@/types/expense';
 
-const { expenses, total, totalsByCategory } = useExpenses();
+import { categories, findCategory } from '../categories.js';
+import { expenses, total } from '../expenses.js';
+import { PESO, formatAmount, formatDate } from '../helpers.js';
 
-/** Only the categories that actually have spending, biggest first. */
-const breakdown = computed(() =>
-  CATEGORIES.map((category) => {
-    const amount = totalsByCategory.value[category.id] ?? 0;
-    return {
-      category,
-      amount,
-      percent: total.value > 0 ? (amount / total.value) * 100 : 0,
-    };
-  })
-    .filter((row) => row.amount > 0)
-    .sort((a, b) => b.amount - a.amount),
-);
+// The average amount of one expense.
+const average = computed(() => {
+  if (expenses.value.length === 0) {
+    return 0;
+  }
+  return total.value / expenses.value.length;
+});
 
-/** The five most expensive records. */
-const topExpenses = computed(() =>
-  [...expenses.value].sort((a, b) => b.amount - a.amount).slice(0, 5),
-);
+// Work out the total for every category, then sort them biggest first.
+const categoryTotals = computed(() => {
+  const rows = [];
 
-const average = computed(() =>
-  expenses.value.length > 0 ? total.value / expenses.value.length : 0,
-);
+  for (const category of categories) {
+    // Add up the expenses that belong to this category.
+    let amount = 0;
+    for (const expense of expenses.value) {
+      if (expense.category === category.id) {
+        amount = amount + expense.amount;
+      }
+    }
+
+    // Skip categories that have no spending at all.
+    if (amount === 0) {
+      continue;
+    }
+
+    // What share of the grand total is this? Used for the width of the bar.
+    let percent = 0;
+    if (total.value > 0) {
+      percent = (amount / total.value) * 100;
+    }
+
+    rows.push({
+      id: category.id,
+      label: category.label,
+      color: category.color,
+      amount: amount,
+      percent: percent,
+    });
+  }
+
+  // Sort so the biggest category is at the top.
+  rows.sort((a, b) => b.amount - a.amount);
+
+  return rows;
+});
+
+// The five most expensive entries.
+const biggestExpenses = computed(() => {
+  // Make a copy first, so we do not reorder the real list.
+  const copy = [...expenses.value];
+  copy.sort((a, b) => b.amount - a.amount);
+  return copy.slice(0, 5);
+});
 </script>
 
 <style scoped>
@@ -100,7 +136,6 @@ const average = computed(() =>
   padding-inline: 0;
 }
 
-/* --- Category breakdown -------------------------------------------------- */
 .cat-row {
   padding: 16px var(--gutter);
   border-top: 1px solid var(--hairline);
@@ -117,7 +152,6 @@ const average = computed(() =>
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--ink);
-  letter-spacing: -0.005em;
 }
 
 .cat-amount {
@@ -134,7 +168,6 @@ const average = computed(() =>
 
 .bar-fill {
   height: 100%;
-  transition: width 0.3s ease;
 }
 
 .cat-percent {
@@ -143,7 +176,6 @@ const average = computed(() =>
   color: var(--ink-faint);
 }
 
-/* --- Largest entries ----------------------------------------------------- */
 .top-row {
   display: flex;
   align-items: flex-start;

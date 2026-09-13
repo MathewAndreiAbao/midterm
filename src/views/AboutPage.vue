@@ -51,10 +51,11 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
 
 // TODO: replace these with the real names, roles and contributions.
+// Change these to your own names and roles.
 const TEAM = [
   {
     name: 'Partner 1 Name',
@@ -66,7 +67,7 @@ const TEAM = [
     name: 'Partner 2 Name',
     role: 'Data',
     contribution:
-      'Set up the Firebase project and Firestore rules, wrote the useExpenses composable with the add, read, update and delete functions, and handled validation and error states.',
+      'Set up the Firebase project and Firestore rules, wrote expenses.js with the add, read, update and delete functions, and handled validation and error states.',
   },
 ];
 
@@ -76,8 +77,8 @@ const STACK = [
     purpose: 'Mobile UI components: pages, lists, modals, tabs and the date picker.',
   },
   {
-    name: 'Vue 3 · Vite · TypeScript',
-    purpose: 'Component logic, reactivity and a fast development server.',
+    name: 'Vue 3 · Vite',
+    purpose: 'Plain JavaScript components, reactivity and a fast development server.',
   },
   {
     name: 'Firebase Cloud Firestore',
@@ -94,7 +95,7 @@ const CRUD = [
   {
     letter: 'R',
     title: 'Read',
-    detail: 'onSnapshot() streams every expense and re-renders the list whenever data changes.',
+    detail: 'startListening() uses onSnapshot to stream every expense and redraw the list on any change.',
   },
   {
     letter: 'U',

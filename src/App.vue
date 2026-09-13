@@ -4,15 +4,14 @@
   </ion-app>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { onMounted, onUnmounted } from 'vue';
-import { useExpenses } from '@/composables/useExpenses';
+import { onMounted } from 'vue';
+import { startListening } from './expenses.js';
 
-// Open the single Firestore listener when the app starts and close it when
-// the app is destroyed.
-const { subscribe, unsubscribeAll } = useExpenses();
-
-onMounted(() => subscribe());
-onUnmounted(() => unsubscribeAll());
+// When the app opens, start listening to the Firebase database.
+// We only do this once, here, and every page shares the result.
+onMounted(() => {
+  startListening();
+});
 </script>
