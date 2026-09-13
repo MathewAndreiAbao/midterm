@@ -1,59 +1,49 @@
 <template>
   <ion-page>
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar>
-        <ion-title>About</ion-title>
+        <ion-title class="brand">About</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content :fullscreen="true">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-subtitle>Midterm Project</ion-card-subtitle>
-          <ion-card-title>Personal Expense Tracker</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          A simple mobile app for recording daily expenses. Built with the Ionic
-          Framework (Vue) for the user interface and Firebase Cloud Firestore as
-          the online database, so every change is saved in the cloud and shows up
-          instantly on any device signed in to the same project.
-        </ion-card-content>
-      </ion-card>
+      <header class="colophon">
+        <p class="eyebrow">Midterm project</p>
+        <h1>Ledger</h1>
+        <p class="lede">
+          A personal expense tracker built with the Ionic Framework and Firebase
+          Cloud Firestore. Every entry is saved to the cloud the moment it is
+          written, and the list keeps itself up to date.
+        </p>
+      </header>
 
-      <ion-list-header>Team members</ion-list-header>
-      <ion-list :inset="true">
-        <ion-item v-for="member in TEAM" :key="member.name" lines="full">
-          <ion-avatar slot="start" class="initials">{{ initials(member.name) }}</ion-avatar>
-          <ion-label class="ion-text-wrap">
-            <h2>{{ member.name }}</h2>
-            <p><strong>{{ member.role }}</strong></p>
-            <p>{{ member.contribution }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
+      <h2 class="section-title">Team</h2>
+      <div v-for="member in TEAM" :key="member.name" class="entry">
+        <div class="entry-head">
+          <span class="entry-name">{{ member.name }}</span>
+          <span class="entry-tag">{{ member.role }}</span>
+        </div>
+        <p class="entry-body">{{ member.contribution }}</p>
+      </div>
 
-      <ion-list-header>Technology used</ion-list-header>
-      <ion-list :inset="true">
-        <ion-item v-for="tech in STACK" :key="tech.name" lines="full">
-          <ion-icon slot="start" :icon="tech.icon" color="primary" />
-          <ion-label class="ion-text-wrap">
-            <h2>{{ tech.name }}</h2>
-            <p>{{ tech.purpose }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
+      <h2 class="section-title">Built with</h2>
+      <div v-for="tech in STACK" :key="tech.name" class="entry">
+        <div class="entry-head">
+          <span class="entry-name">{{ tech.name }}</span>
+        </div>
+        <p class="entry-body">{{ tech.purpose }}</p>
+      </div>
 
-      <ion-list-header>CRUD functions implemented</ion-list-header>
-      <ion-list :inset="true">
-        <ion-item v-for="op in CRUD" :key="op.letter" lines="full">
-          <ion-badge slot="start" color="primary">{{ op.letter }}</ion-badge>
-          <ion-label class="ion-text-wrap">
-            <h2>{{ op.title }}</h2>
-            <p>{{ op.detail }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
+      <h2 class="section-title">CRUD operations</h2>
+      <div v-for="op in CRUD" :key="op.letter" class="entry">
+        <div class="entry-head">
+          <span class="entry-letter">{{ op.letter }}</span>
+          <span class="entry-name">{{ op.title }}</span>
+        </div>
+        <p class="entry-body">{{ op.detail }}</p>
+      </div>
 
+      <div class="tail-rule" />
       <p class="footnote">
         Edit <code>src/views/AboutPage.vue</code> to put your own names and roles here.
       </p>
@@ -62,110 +52,152 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IonAvatar,
-  IonBadge,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/vue';
-import { cloudOutline, logoVue, phonePortraitOutline } from 'ionicons/icons';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
 
 // TODO: replace these with the real names, roles and contributions.
 const TEAM = [
   {
     name: 'Partner 1 Name',
-    role: 'Front-end / UI Developer',
+    role: 'Interface',
     contribution:
-      'Designed the pages and the expense form, built the tab navigation, the category filter, the search bar and the Summary page layout.',
+      'Designed the pages and the entry form, built the tab navigation, the category filter, the search and the Summary layout.',
   },
   {
     name: 'Partner 2 Name',
-    role: 'Firebase / Data Developer',
+    role: 'Data',
     contribution:
-      'Set up the Firebase project and Firestore rules, wrote the useExpenses composable with the add, read, update and delete functions, and handled form validation and error messages.',
+      'Set up the Firebase project and Firestore rules, wrote the useExpenses composable with the add, read, update and delete functions, and handled validation and error states.',
   },
 ];
 
 const STACK = [
   {
-    name: 'Ionic Framework 8 (Vue)',
-    purpose: 'Ready-made mobile UI components: pages, lists, modals, tabs and the date picker.',
-    icon: phonePortraitOutline,
+    name: 'Ionic Framework 8 · Vue',
+    purpose: 'Mobile UI components: pages, lists, modals, tabs and the date picker.',
   },
   {
-    name: 'Vue 3 + Vite + TypeScript',
+    name: 'Vue 3 · Vite · TypeScript',
     purpose: 'Component logic, reactivity and a fast development server.',
-    icon: logoVue,
   },
   {
     name: 'Firebase Cloud Firestore',
     purpose: 'Online NoSQL database. Real-time listeners keep the list in sync automatically.',
-    icon: cloudOutline,
   },
 ];
 
 const CRUD = [
   {
     letter: 'C',
-    title: 'Create - addExpense()',
+    title: 'Create',
     detail: 'The + button opens the form; Save calls addDoc() to write a new document.',
   },
   {
     letter: 'R',
-    title: 'Read - onSnapshot()',
-    detail: 'A live listener loads every expense and re-renders the list whenever data changes.',
+    title: 'Read',
+    detail: 'onSnapshot() streams every expense and re-renders the list whenever data changes.',
   },
   {
     letter: 'U',
-    title: 'Update - updateExpense()',
-    detail: 'Tapping a row (or swiping to Edit) reopens the same form and calls updateDoc().',
+    title: 'Update',
+    detail: 'Tapping a row reopens the same form and calls updateDoc() with the new values.',
   },
   {
     letter: 'D',
-    title: 'Delete - deleteExpense()',
-    detail: 'Swipe left, tap the trash icon, confirm the alert, then deleteDoc() removes it.',
+    title: 'Delete',
+    detail: 'Swipe left, tap Delete, confirm the alert, then deleteDoc() removes the document.',
   },
 ];
-
-/** "Juan Dela Cruz" -> "JD" */
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? '')
-    .join('');
-}
 </script>
 
 <style scoped>
-.initials {
+.brand {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  padding-inline: 0;
+}
+
+.colophon {
+  padding: 16px var(--gutter) 36px;
+}
+
+.colophon h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 2.75rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 14px 0 0;
+}
+
+.lede {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 18px 0 0;
+  max-width: 38ch;
+}
+
+.entry {
+  padding: 16px var(--gutter);
+  border-top: 1px solid var(--hairline);
+}
+
+.entry-head {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ion-color-primary);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.entry-letter {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink-muted);
+  width: 14px;
+  flex: 0 0 auto;
+}
+
+.entry-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  flex: 1 1 auto;
+}
+
+.entry-tag {
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.entry-body {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+  max-width: 46ch;
+}
+
+.tail-rule {
+  height: 1px;
+  background: var(--hairline);
 }
 
 .footnote {
   text-align: center;
-  font-size: 0.8rem;
-  color: var(--ion-color-medium);
-  padding: 8px 24px 24px;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  padding: 22px var(--gutter) 110px;
+  margin: 0;
+}
+
+.footnote code {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
 }
 </style>

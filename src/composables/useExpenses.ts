@@ -172,3 +172,36 @@ export function formatDate(iso: string): string {
     year: 'numeric',
   });
 }
+
+/** Format a number with no currency symbol, e.g. 1234.5 -> "1,234.50". */
+export function formatAmount(value: number): string {
+  return new Intl.NumberFormat('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value || 0);
+}
+
+/** The peso sign, kept separate so it can be styled smaller than the digits. */
+export const PESO = '₱';
+
+/** Heading for a group of expenses: "Today", "Yesterday" or "Sep 13, 2026". */
+export function formatDayLabel(iso: string): string {
+  if (!iso) return 'No date';
+
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const target = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(target.getTime())) return iso;
+
+  const diffDays = Math.round(
+    (startOfDay(target).getTime() - startOfDay(new Date()).getTime()) / 86_400_000,
+  );
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === -1) return 'Yesterday';
+  return formatDate(iso);
+}
+
+/** "September 2026" - used as the label under the running total. */
+export function formatMonthLabel(date = new Date()): string {
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}

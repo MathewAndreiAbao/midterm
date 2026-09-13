@@ -1,64 +1,412 @@
-/* Ionic theme variables.
-   Only the primary colour is customised - everything else uses the Ionic
-   defaults so the app still looks correct in both light and dark mode. */
+/* ============================================================================
+   Design system - "quiet luxury"
+   ----------------------------------------------------------------------------
+   A restrained, expensive-feeling look: warm paper background, near-black ink,
+   hairline rules instead of boxes, one serif display face for numbers and a
+   neutral grotesque for everything else. No bright colours, no drop shadows,
+   no filled cards - the spacing does the work.
+   ========================================================================== */
 
 :root {
-  --ion-color-primary: #2563eb;
-  --ion-color-primary-rgb: 37, 99, 235;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #2157cf;
-  --ion-color-primary-tint: #3b73ed;
+  /* --- Type ------------------------------------------------------------- */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  /* --- Palette (light / "paper") ---------------------------------------- */
+  --paper: #faf9f6;
+  --paper-raised: #ffffff;
+  --ink: #191814;
+  --ink-soft: #55524b;
+  --ink-muted: #928d84;
+  --ink-faint: #b6b1a8;
+  --hairline: #e6e2d9;
+  --hairline-strong: #d5d0c4;
+  --accent: #7c6a4f; /* warm bronze, used sparingly */
+
+  /* --- Rhythm ------------------------------------------------------------ */
+  --gutter: 24px;
+
+  /* --- Ionic overrides --------------------------------------------------- */
+  --ion-font-family: var(--font-sans);
+  --ion-background-color: var(--paper);
+  --ion-background-color-rgb: 250, 249, 246;
+  --ion-text-color: var(--ink);
+  --ion-text-color-rgb: 25, 24, 20;
+  --ion-border-color: var(--hairline);
+
+  --ion-toolbar-background: var(--paper);
+  --ion-toolbar-color: var(--ink);
+  --ion-item-background: transparent;
+  --ion-item-color: var(--ink);
+
+  --ion-color-primary: #191814;
+  --ion-color-primary-rgb: 25, 24, 20;
+  --ion-color-primary-contrast: #faf9f6;
+  --ion-color-primary-contrast-rgb: 250, 249, 246;
+  --ion-color-primary-shade: #16150f;
+  --ion-color-primary-tint: #333229;
+
+  --ion-color-danger: #8c3b32;
+  --ion-color-danger-rgb: 140, 59, 50;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #7b342c;
+  --ion-color-danger-tint: #984f47;
 }
 
-/* A rounded "card" look used by the total banner on the Expenses page. */
-.total-card {
-  margin: 12px 16px 4px;
-  border-radius: 16px;
-  padding: 18px 20px;
-  background: linear-gradient(135deg, var(--ion-color-primary), #7c3aed);
-  color: #fff;
+/* --- Palette (dark / "ink") ---------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #121110;
+    --paper-raised: #1a1917;
+    --ink: #f3f0e9;
+    --ink-soft: #b4afa5;
+    --ink-muted: #8b867d;
+    --ink-faint: #625e57;
+    --hairline: #272522;
+    --hairline-strong: #37342f;
+    --accent: #b39b74;
+
+    --ion-background-color: var(--paper);
+    --ion-background-color-rgb: 18, 17, 16;
+    --ion-text-color: var(--ink);
+    --ion-text-color-rgb: 243, 240, 233;
+    --ion-border-color: var(--hairline);
+    --ion-toolbar-background: var(--paper);
+    --ion-toolbar-color: var(--ink);
+    --ion-item-color: var(--ink);
+
+    --ion-color-primary: #f3f0e9;
+    --ion-color-primary-rgb: 243, 240, 233;
+    --ion-color-primary-contrast: #121110;
+    --ion-color-primary-contrast-rgb: 18, 17, 16;
+    --ion-color-primary-shade: #d6d3cd;
+    --ion-color-primary-tint: #f5f2ec;
+
+    --ion-color-danger: #c97b70;
+    --ion-color-danger-rgb: 201, 123, 112;
+    --ion-color-danger-contrast: #121110;
+    --ion-color-danger-contrast-rgb: 18, 17, 16;
+  }
 }
 
-.total-card .total-label {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
+/* ============================================================================
+   Base
+   ========================================================================== */
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.006em;
+}
+
+/* Strip the default Ionic chrome: no toolbar borders, no card shadows. */
+ion-toolbar {
+  --border-width: 0 !important;
+  --border-color: transparent;
+  --min-height: 52px;
+  --padding-start: var(--gutter);
+  --padding-end: var(--gutter);
+}
+
+ion-content {
+  --background: var(--paper);
+}
+
+ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+  --background-hover: transparent;
+  --background-activated: transparent;
+  --background-focused: transparent;
+  --border-color: var(--hairline);
+  --detail-icon-opacity: 0;
+}
+
+ion-list {
+  background: transparent;
+  padding: 0;
+}
+
+/* ============================================================================
+   Shared typographic pieces
+   ========================================================================== */
+
+/* Small letter-spaced uppercase label. */
+.eyebrow {
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.85;
+  color: var(--ink-muted);
+  margin: 0;
 }
 
-.total-card .total-value {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-top: 2px;
+/* The big serif figure used for totals. */
+.figure {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 3.25rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 14px 0 0;
+  font-variant-numeric: tabular-nums;
 }
 
-.total-card .total-sub {
-  font-size: 0.85rem;
-  opacity: 0.9;
-  margin-top: 6px;
+/* The currency mark sits high and small, in the sans face, so it reads as a
+   mark rather than competing with the serif digits. */
+.figure .figure-symbol {
+  font-family: var(--font-sans);
+  font-size: 0.28em;
+  font-weight: 500;
+  vertical-align: 0.95em;
+  margin-right: 0.22em;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
 }
 
-.category-dot {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 1.1rem;
+/* Page masthead, e.g. the total on the Expenses and Summary tabs. */
+.masthead {
+  padding: 20px var(--gutter) 30px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.masthead .meta {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin: 12px 0 0;
+  letter-spacing: 0.01em;
+}
+
+/* Section heading above a group of rows. */
+.section-title {
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: 34px var(--gutter) 14px;
+  margin: 0;
+}
+
+/* Numbers that should line up in a column. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 .empty-state {
   text-align: center;
-  padding: 56px 24px;
-  color: var(--ion-color-medium);
+  padding: 90px 40px;
 }
 
-.empty-state ion-icon {
-  font-size: 64px;
-  margin-bottom: 12px;
-  opacity: 0.5;
+.empty-state .rule {
+  width: 28px;
+  height: 1px;
+  background: var(--hairline-strong);
+  margin: 0 auto 24px;
+}
+
+.empty-state h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.empty-state p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  margin: 0;
+  max-width: 25ch;
+  margin-inline: auto;
+}
+
+/* ============================================================================
+   Ionic component restyling
+   ========================================================================== */
+
+/* Searchbar - flat, no box, just a hairline. */
+ion-searchbar.ledger-search {
+  --background: transparent;
+  --box-shadow: none;
+  --border-radius: 0;
+  --color: var(--ink);
+  --placeholder-color: var(--ink-faint);
+  --placeholder-opacity: 1;
+  --icon-color: var(--ink-faint);
+  --clear-button-color: var(--ink-muted);
+  padding: 0 var(--gutter) 14px;
+  font-size: 0.875rem;
+}
+
+ion-searchbar.ledger-search .searchbar-input {
+  border-bottom: 1px solid var(--hairline);
+  padding-inline-start: 26px !important;
+  padding-bottom: 10px;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+}
+
+ion-searchbar.ledger-search .searchbar-search-icon {
+  inset-inline-start: 0 !important;
+  width: 15px;
+}
+
+/* Tab bar - hairline top, tiny tracked labels. */
+ion-tab-bar {
+  --background: var(--paper);
+  --border: 1px solid var(--hairline);
+  --color: var(--ink-faint);
+  --color-selected: var(--ink);
+  height: 62px;
+  padding-top: 4px;
+}
+
+ion-tab-button {
+  --padding-top: 0;
+}
+
+ion-tab-button ion-icon {
+  font-size: 19px;
+  margin-bottom: 4px;
+}
+
+ion-tab-button ion-label {
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Floating action button - a plain ink disc. */
+ion-fab-button.ledger-fab {
+  --background: var(--ink);
+  --background-activated: var(--ink);
+  --background-hover: var(--ink);
+  --color: var(--paper);
+  --box-shadow: 0 6px 24px rgba(25, 24, 20, 0.22);
+  --border-radius: 50%;
+  width: 54px;
+  height: 54px;
+}
+
+ion-fab-button.ledger-fab ion-icon {
+  font-size: 21px;
+}
+
+/* Swipe-to-reveal options. */
+ion-item-option {
+  --background: transparent;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+ion-item-option.opt-edit {
+  --background: var(--hairline);
+  --color: var(--ink);
+}
+
+ion-item-option.opt-delete {
+  --background: var(--ion-color-danger);
+  --color: #fff;
+}
+
+/* Modals, alerts, action sheets. */
+ion-modal {
+  --background: var(--paper);
+}
+
+ion-alert .alert-wrapper {
+  --background: var(--paper-raised);
+  border-radius: 4px;
+}
+
+ion-alert .alert-title {
+  font-family: var(--font-display);
+  font-weight: 400 !important;
+  font-size: 1.25rem !important;
+  letter-spacing: -0.01em;
+}
+
+ion-alert .alert-message {
+  font-size: 0.8125rem !important;
+  line-height: 1.55;
+  color: var(--ink-soft) !important;
+}
+
+ion-alert .alert-button {
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 500 !important;
+}
+
+ion-action-sheet .action-sheet-group {
+  background: var(--paper-raised) !important;
+}
+
+ion-action-sheet .action-sheet-title {
+  font-size: 0.625rem !important;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted) !important;
+}
+
+ion-action-sheet .action-sheet-button {
+  font-size: 0.9375rem !important;
+  color: var(--ink) !important;
+}
+
+ion-toast {
+  --background: var(--ink);
+  --color: var(--paper);
+  --border-radius: 3px;
+  --box-shadow: none;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+
+/* Date picker trigger - a plain underlined value, not a filled pill. */
+ion-datetime-button::part(native) {
+  background: transparent;
+  color: var(--ink);
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--hairline-strong);
+  border-radius: 0;
+}
+
+ion-datetime {
+  --background: var(--paper-raised);
+  --ion-color-base: var(--ink) !important;
+}
+
+
+/* Kill Ionic's focus/validity underline - the row hairlines are the only
+   dividers in this design. */
+ion-input,
+ion-select,
+ion-textarea {
+  --highlight-color-focused: transparent;
+  --highlight-color-valid: transparent;
+  --highlight-color-invalid: transparent;
+  --border-width: 0;
+  --border-color: transparent;
+}
+
+/* Keep the caret visible - it is the only cue that the row opens a picker. */
+ion-select::part(icon) {
+  opacity: 1;
+  color: var(--ink-faint);
 }

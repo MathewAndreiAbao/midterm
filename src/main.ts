@@ -20,7 +20,8 @@ import '@ionic/vue/css/text-transformation.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
 
-/* Our own theme variables */
+/* Self-hosted webfonts, then our own theme variables */
+import './theme/fonts.css';
 import './theme/variables.css';
 
 const app = createApp(App).use(IonicVue).use(router);

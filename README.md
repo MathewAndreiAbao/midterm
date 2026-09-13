@@ -12,9 +12,28 @@ All four **CRUD** operations are implemented and every change is saved to Fireba
 
 | Tab | What it does |
 | --- | --- |
-| **Expenses** | The main list. Shows the running total, a search box, category filter chips, and every expense record. The `+` button adds a new one; tapping a row edits it; swiping left reveals Edit and Delete. |
-| **Summary** | Total spending broken down per category with a percentage bar, plus the five biggest expenses. |
+| **Entries** | The main ledger. A running total at the top, then a search box, category filters, and the entries grouped by day with a subtotal per day. The `+` button adds a new entry; tapping a row edits it; swiping left reveals Edit and Delete. |
+| **Summary** | Total spending broken down per category with a percentage bar, plus the largest entries. |
 | **About** | Team members and their contributions, the technology used, and a short list of the CRUD functions. |
+
+### Design
+
+The interface is deliberately quiet: a warm paper background, near-black ink,
+hairline rules instead of boxed cards, and a lot of empty space. Figures are set
+in **Instrument Serif** and everything else in **Inter**; labels are small,
+uppercase and letter-spaced. Category colours are muted and earthy, and only
+ever appear as a 6px dot on a row or a 2px bar on the Summary page.
+
+Both fonts are **self-hosted** from `public/fonts/` (about 170 KB, latin and
+latin-ext subsets only), so the typography looks the same whether or not the
+demo machine has internet - there are no external requests. The `latin-ext`
+subset is the one that carries the peso sign, so it is required, not optional.
+
+Dark mode is automatic: the palette flips to ink-on-black when the phone or
+browser is set to dark. Nothing needs to be toggled in the app.
+
+All of the design tokens live in `src/theme/variables.css`. Change the handful
+of custom properties at the top of that file and the whole app follows.
 
 ---
 
@@ -190,12 +209,13 @@ Run through this once before the face-to-face check.
 
 1. **Open the app** with the browser in phone view; the list and total are already there.
 2. **Create** - tap `+`, add *"Lunch at canteen", 150.50, Food, today, "Chicken adobo with rice"* → Save.
-   Point out that the row and the total appear **without refreshing**.
+   Point out that the row, the day subtotal and the grand total all appear
+   **without refreshing**.
 3. Add two more with different categories so the Summary has something to show.
 4. **Read** - type in the search box, then tap a category chip, to show the filtering.
 5. **Update** - tap the *Lunch* row, change the amount to `175`, Save. The row and the
    total both update instantly.
-6. **Delete** - swipe a row left, tap the trash icon, confirm the alert. The row disappears.
+6. **Delete** - swipe a row left, tap **Delete**, confirm the alert. The row disappears.
 7. Open the **Summary** tab to show the per-category percentages.
 8. Open the **Firebase console → Firestore Database** side by side and show the same
    documents living in the cloud. This is the strongest proof that Firebase is really used.
@@ -249,3 +269,14 @@ shows a toast instead of breaking the app.
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Run the TypeScript checker only |
 | `npm run emulator` | Start the local Firestore emulator |
+
+---
+
+## 8. Where to change the look
+
+| What | File |
+| --- | --- |
+| Colours, fonts, spacing, all design tokens | `src/theme/variables.css` |
+| The `@font-face` declarations | `src/theme/fonts.css` |
+| The font files themselves | `public/fonts/` |
+| Category names, icons and colours | `src/types/expense.ts` |

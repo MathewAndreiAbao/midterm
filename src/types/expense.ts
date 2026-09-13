@@ -35,16 +35,19 @@ export interface Category {
  * The fixed list of categories the user can pick from.
  * Keeping them in one place means the list page, the form and the summary
  * page all stay in sync.
+ *
+ * The colours are deliberately muted and earthy rather than bright - they are
+ * only ever used as a small dot on a row or a thin bar on the Summary page.
  */
 export const CATEGORIES: Category[] = [
-  { id: 'food', label: 'Food', icon: 'fast-food-outline', color: '#f97316' },
-  { id: 'transportation', label: 'Transportation', icon: 'bus-outline', color: '#3b82f6' },
-  { id: 'bills', label: 'Bills & Utilities', icon: 'receipt-outline', color: '#8b5cf6' },
-  { id: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: '#ec4899' },
-  { id: 'health', label: 'Health', icon: 'medkit-outline', color: '#ef4444' },
-  { id: 'education', label: 'Education', icon: 'school-outline', color: '#14b8a6' },
-  { id: 'entertainment', label: 'Entertainment', icon: 'game-controller-outline', color: '#eab308' },
-  { id: 'others', label: 'Others', icon: 'ellipsis-horizontal-outline', color: '#64748b' },
+  { id: 'food', label: 'Food', icon: 'fast-food-outline', color: '#9c6644' },
+  { id: 'transportation', label: 'Transportation', icon: 'bus-outline', color: '#4a5d5e' },
+  { id: 'bills', label: 'Bills & Utilities', icon: 'receipt-outline', color: '#6b6152' },
+  { id: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: '#8c6a72' },
+  { id: 'health', label: 'Health', icon: 'medkit-outline', color: '#a15c4e' },
+  { id: 'education', label: 'Education', icon: 'school-outline', color: '#4f6155' },
+  { id: 'entertainment', label: 'Entertainment', icon: 'game-controller-outline', color: '#8a7a4e' },
+  { id: 'others', label: 'Others', icon: 'ellipsis-horizontal-outline', color: '#7a7772' },
 ];
 
 /** Look up a category by id, falling back to "Others" for unknown values. */

@@ -1,79 +1,86 @@
 <template>
   <ion-modal :is-open="isOpen" @did-dismiss="close">
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button @click="close">Cancel</ion-button>
+          <ion-button class="ghost" @click="close">Cancel</ion-button>
         </ion-buttons>
-        <ion-title>{{ isEditing ? 'Edit Expense' : 'New Expense' }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button :strong="true" :disabled="saving" @click="save">Save</ion-button>
+          <ion-button class="ghost strong" :disabled="saving" @click="save">Save</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
-      <ion-list :inset="true">
+    <ion-content>
+      <header class="form-head">
+        <p class="eyebrow">{{ isEditing ? 'Edit entry' : 'New entry' }}</p>
+        <h1>{{ isEditing ? 'Update this expense' : 'What did you spend on?' }}</h1>
+      </header>
+
+      <div class="fields">
         <!-- 1. NAME -->
-        <ion-item>
+        <label class="field">
+          <span class="field-label">Description</span>
           <ion-input
             v-model="form.name"
-            label="Expense name"
-            label-placement="stacked"
-            placeholder="e.g. Lunch at the canteen"
+            class="field-input"
+            placeholder="Lunch at the canteen"
             :maxlength="60"
             autocapitalize="sentences"
           />
-        </ion-item>
+        </label>
 
         <!-- 2. AMOUNT -->
-        <ion-item>
-          <ion-input
-            v-model="amountText"
-            label="Amount (PHP)"
-            label-placement="stacked"
-            type="number"
-            inputmode="decimal"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-          />
-        </ion-item>
+        <label class="field">
+          <span class="field-label">Amount</span>
+          <div class="amount-wrap">
+            <span class="peso">{{ PESO }}</span>
+            <ion-input
+              v-model="amountText"
+              class="field-input amount-input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+            />
+          </div>
+        </label>
 
         <!-- 3. CATEGORY -->
-        <ion-item>
+        <label class="field">
+          <span class="field-label">Category</span>
           <ion-select
             v-model="form.category"
-            label="Category"
-            label-placement="stacked"
+            class="field-input"
             interface="action-sheet"
-            :interface-options="{ header: 'Choose a category' }"
+            :interface-options="{ header: 'Category' }"
           >
             <ion-select-option v-for="c in CATEGORIES" :key="c.id" :value="c.id">
               {{ c.label }}
             </ion-select-option>
           </ion-select>
-        </ion-item>
+        </label>
 
         <!-- 4. DATE -->
-        <ion-item>
-          <ion-label>Date</ion-label>
-          <ion-datetime-button slot="end" datetime="expense-date" />
-        </ion-item>
+        <div class="field field-row">
+          <span class="field-label">Date</span>
+          <ion-datetime-button datetime="expense-date" />
+        </div>
 
         <!-- 5. NOTES -->
-        <ion-item>
+        <label class="field">
+          <span class="field-label">Notes <em>optional</em></span>
           <ion-textarea
             v-model="form.notes"
-            label="Notes (optional)"
-            label-placement="stacked"
-            placeholder="Anything you want to remember about this expense"
+            class="field-input"
+            placeholder="Anything worth remembering"
             :auto-grow="true"
-            :rows="3"
+            :rows="2"
             :maxlength="200"
           />
-        </ion-item>
-      </ion-list>
+        </label>
+      </div>
 
       <!-- The date picker itself lives in its own modal, opened by the
            ion-datetime-button above. -->
@@ -102,19 +109,15 @@ import {
   IonDatetimeButton,
   IonHeader,
   IonInput,
-  IonItem,
-  IonLabel,
-  IonList,
   IonModal,
   IonSelect,
   IonSelectOption,
   IonTextarea,
-  IonTitle,
   IonToolbar,
   toastController,
 } from '@ionic/vue';
 import { CATEGORIES, type Expense, type ExpenseInput } from '@/types/expense';
-import { useExpenses } from '@/composables/useExpenses';
+import { PESO, useExpenses } from '@/composables/useExpenses';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -186,13 +189,8 @@ function close(): void {
   emit('close');
 }
 
-async function showToast(message: string, color: string): Promise<void> {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: 'bottom',
-  });
+async function showToast(message: string): Promise<void> {
+  const toast = await toastController.create({ message, duration: 2000, position: 'bottom' });
   await toast.present();
 }
 
@@ -201,7 +199,7 @@ function validate(): boolean {
   const amount = Number(amountText.value);
 
   if (!form.name.trim()) {
-    validationError.value = 'Please enter the expense name.';
+    validationError.value = 'Please enter a description.';
     return false;
   }
   if (!amountText.value || Number.isNaN(amount) || amount <= 0) {
@@ -234,15 +232,15 @@ async function save(): Promise<void> {
   try {
     if (props.expense) {
       await updateExpense(props.expense.id, payload);
-      await showToast('Expense updated.', 'success');
+      await showToast('Entry updated');
     } else {
       await addExpense(payload);
-      await showToast('Expense added.', 'success');
+      await showToast('Entry added');
     }
     close();
   } catch (error) {
     console.error('[ExpenseFormModal] save failed', error);
-    await showToast('Could not save. Check your internet connection.', 'danger');
+    await showToast('Could not save. Check your internet connection.');
   } finally {
     saving.value = false;
   }
@@ -250,9 +248,101 @@ async function save(): Promise<void> {
 </script>
 
 <style scoped>
+.ghost {
+  --color: var(--ink-muted);
+  --padding-start: 0;
+  --padding-end: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.ghost.strong {
+  --color: var(--ink);
+}
+
+.form-head {
+  padding: 12px var(--gutter) 34px;
+}
+
+.form-head h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 14px 0 0;
+  max-width: 16ch;
+}
+
+.fields {
+  border-top: 1px solid var(--hairline);
+}
+
+.field {
+  display: block;
+  padding: 16px var(--gutter);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.field-label em {
+  font-style: normal;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+.field-input {
+  --background: transparent;
+  --color: var(--ink);
+  --placeholder-color: var(--ink-faint);
+  --placeholder-opacity: 1;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 8px;
+  --padding-bottom: 0;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  min-height: auto;
+}
+
+.amount-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.peso {
+  font-size: 1rem;
+  color: var(--ink-faint);
+  padding-top: 8px;
+}
+
+.amount-input {
+  font-variant-numeric: tabular-nums;
+}
+
 .form-error {
+  font-size: 0.8125rem;
   color: var(--ion-color-danger);
-  font-size: 0.9rem;
-  margin: 4px 20px;
+  margin: 18px var(--gutter) 0;
+  letter-spacing: -0.005em;
 }
 </style>
