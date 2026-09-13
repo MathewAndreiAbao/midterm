@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Firestore security rules for the Personal Expense Tracker.
+//
+// This midterm app has no login screen, so the "expenses" collection is open
+// to anyone who has the project keys. That is fine for a classroom demo but
+// it is NOT safe for a real app - anyone could read or wipe the data.
+//
+// If you add Firebase Authentication later, replace the two "true" lines with:
+//
+//   allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+//
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /expenses/{expenseId} {
+      allow read: if true;
+
+      // Basic shape check so a bad client cannot write junk documents.
+      allow create, update: if request.resource.data.name is string
+                            && request.resource.data.name.size() > 0
+                            && request.resource.data.name.size() <= 60
+                            && request.resource.data.amount is number
+                            && request.resource.data.amount > 0
+                            && request.resource.data.category is string
+                            && request.resource.data.date is string
+                            && request.resource.data.notes is string;
+
+      allow delete: if true;
+    }
+  }
+}
